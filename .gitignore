@@ -1,2 +1,50 @@
-node_modules
-.vscode
+# Node modules
+node_modules/
+bower_components/
+
+# Electron build output
+/dist/
+/build/
+/out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# VSCode settings (optional)
+.vscode/
+
+# Environment variables
+.env
+.env.*
+
+# Electron-builder cache & output
+/builds/
+/release/
+/*.tgz
+*.deb
+*.rpm
+*.msi
+*.exe
+*.dmg
+*.AppImage
+
+# Compiled source
+*.tsbuildinfo
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dll
+
+# Misc
+coverage/
+.idea/
+.cache/
+*.log
