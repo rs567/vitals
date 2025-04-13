@@ -64,8 +64,8 @@ coverage/
 /coverage
 
 # next.js
-/.next/
-/out/
+/frontend/.next/
+/frontend/out/
 
 # production
 /build
