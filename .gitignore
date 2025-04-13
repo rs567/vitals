@@ -48,3 +48,7 @@ coverage/
 .idea/
 .cache/
 *.log
+
+package*.json
+grapes-editor/
+.conda/
