@@ -11,3 +11,6 @@ def hello_world():
 def about():
     return "<p>This is the about page.</p>"
 
+@app.route("/<name>")
+def hello(name):
+    return f"Hello, {escape(name)}!\n"
