@@ -1,31 +1,53 @@
 from pathlib import Path
 
 
+def get_unique_filename(file_path: Path) -> Path:
+    '''
+    add an incrementing number if a file already exists
+    '''
+    # Check if the file exists
+    if not file_path.exists():
+        return file_path  # If it doesn't exist, return the original path
+    
+    # If the file exists, start adding a counter to the filename
+    base_filename = file_path.stem  # Get the base filename without extension
+    extension = file_path.suffix  # Get the file extension
+    counter = 1
+
+    # Loop until a unique file name is found
+    while file_path.exists():
+        # Create a new filename with the counter appended
+        new_filename = file_path.parent / f"{base_filename}_{counter}{extension}"
+        file_path = new_filename
+        counter += 1
+
+    return file_path
 class FileHandler:
+
+    DATA_FOLDER_PATH = Path('.') / 'Data'
+    IMPORT_FOLDER_PATH = DATA_FOLDER_PATH / "import"
+    OUTBOX_FOLDER_PATH = DATA_FOLDER_PATH / "outbox"
+    BILLING_FOLDER_PATH = DATA_FOLDER_PATH / "billing"
+    MEDICAL_RECORDS_FOLDER_PATH = DATA_FOLDER_PATH / "medical_records"
+
     def __init__(self):
         '''
         Initialize the FileHandler with a folder path.
         '''
-        self.data_folder_path = Path('.') / 'Data'
-        self.import_folder_path = self.data_folder_path / "import"
-        self.outbox_folder_path = self.data_folder_path / "outbox"
-        self.billing_folder_path = self.data_folder_path / "billing"
-        self.medical_records_folder_path = self.data_folder_path / "medical_records"
-
         self.initalize_folders()
 
     def initalize_folders(self):
         '''
         make the folders locally in the repo if they aren't there already
         '''
-        if not self.import_folder_path.exists():
-            self.import_folder_path.mkdir(exist_ok=True)
-        if not self.outbox_folder_path.exists():
-            self.outbox_folder_path.mkdir(exist_ok=True)
-        if not self.billing_folder_path.exists():
-            self.billing_folder_path.mkdir(exist_ok=True)
-        if not self.medical_records_folder_path.exists():
-            self.medical_records_folder_path.mkdir(exist_ok=True)
+        if not FileHandler.IMPORT_FOLDER_PATH.exists():
+            FileHandler.IMPORT_FOLDER_PATH.mkdir(exist_ok=True)
+        if not FileHandler.OUTBOX_FOLDER_PATH.exists():
+            FileHandler.OUTBOX_FOLDER_PATH.mkdir(exist_ok=True)
+        if not FileHandler.BILLING_FOLDER_PATH.exists():
+            FileHandler.BILLING_FOLDER_PATH.mkdir(exist_ok=True)
+        if not FileHandler.MEDICAL_RECORDS_FOLDER_PATH.exists():
+            FileHandler.MEDICAL_RECORDS_FOLDER_PATH.mkdir(exist_ok=True)
 
     def list_files(self, cur_dir):
         '''
@@ -85,7 +107,3 @@ class FileHandler:
                 initial_files = current_files
         except KeyboardInterrupt:
             print("Stopped watching the folder.")
-
-
-test = FileHandler()
-...
