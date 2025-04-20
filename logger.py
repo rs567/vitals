@@ -6,7 +6,7 @@ logger.setLevel(logging.ERROR)  # Set default level here
 def setup_logging():
     # Only sets up logging once for the root logger
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.ERROR,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[logging.StreamHandler()]  # ensures only one handler
     )
