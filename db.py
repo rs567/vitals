@@ -9,13 +9,18 @@ from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
+import os
+
 from data.file_io import FileHandler, get_unique_filename
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
+CONNECTION_URI = os.environ.get('MONGO_URI')
+# OLD URI: mongodb://localhost:27017/
+
 class MongoDBConnection:
-    def __init__(self, uri="mongodb://localhost:27017/", db_name=None):
+    def __init__(self, uri=CONNECTION_URI, db_name=None):
         self.uri = uri
         self.db_name = db_name
         self.client = None
