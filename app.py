@@ -24,6 +24,8 @@ def upload_document():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
+    # file_id = mongo.fs.put(file, filename=file.filename)
+    # metadata = mongo.create_metadata()
     file_id = mongo.fs.put(file, filename=file.filename)
     return jsonify({"message": "File uploaded", "file_id": str(file_id)})
 

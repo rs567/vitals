@@ -1,5 +1,9 @@
 from pathlib import Path
+from logger import logger, setup_logging
+import logging 
 
+setup_logging()
+logger = logging.getLogger(__name__)
 
 def get_unique_filename(file_path: Path) -> Path:
     '''
@@ -22,8 +26,15 @@ def get_unique_filename(file_path: Path) -> Path:
         counter += 1
 
     return file_path
-class FileHandler:
 
+class FileHandler:
+    '''
+    Handles file operations in for the app, the data folder, however can be 
+    specified to write else where
+
+    [not implemented yet]
+    - index, manage files locally here without putting files into mongoDB
+    '''
     DATA_FOLDER_PATH = Path('.') / 'Data'
     IMPORT_FOLDER_PATH = DATA_FOLDER_PATH / "import"
     OUTBOX_FOLDER_PATH = DATA_FOLDER_PATH / "outbox"
@@ -91,7 +102,7 @@ class FileHandler:
         '''
         Watch the folder for changes (basic implementation).
         '''
-        print(f"Watching folder: {self.folder_path}")
+        logging.info(f"Watching folder: {self.folder_path}")
         initial_files = set(self.list_files())
         try:
             while True:
@@ -100,10 +111,10 @@ class FileHandler:
                 removed_files = initial_files - current_files
 
                 if added_files:
-                    print(f"New files added: {', '.join(added_files)}")
+                    logging.info(f"New files added: {', '.join(added_files)}")
                 if removed_files:
-                    print(f"Files removed: {', '.join(removed_files)}")
+                    logging.info(f"Files removed: {', '.join(removed_files)}")
 
                 initial_files = current_files
         except KeyboardInterrupt:
-            print("Stopped watching the folder.")
+            logging.info("Stopped watching the folder.")

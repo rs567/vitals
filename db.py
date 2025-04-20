@@ -1,4 +1,5 @@
 import logging
+from logger import logger, setup_logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -10,10 +11,8 @@ from pymongo.errors import ConnectionFailure
 
 from data.file_io import FileHandler, get_unique_filename
 
-logging.basicConfig(
-    level=logging.ERROR,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
+setup_logging()
+logger = logging.getLogger(__name__)
 
 class MongoDBConnection:
     def __init__(self, uri="mongodb://localhost:27017/", db_name=None):
