@@ -51,10 +51,11 @@ class MongoDBConnection:
             self.client.close()
             logging.info("MongoDB connection closed.")
 
-    def create_document(self, path: Path, metadata: Optional[Dict] = None) -> Optional[ObjectId]:
-        '''
+    def _create_document(self, path: Path, metadata: Optional[Dict] = None) -> Optional[ObjectId]:
+        """
+        desktop method
         upload a file to db, move the folder 
-        '''
+        """
         # Checks
         if not path.exists() or not path.is_file():
             logging.error(f"Error: The file {path} does not exist or is not a valid file.")
@@ -71,10 +72,21 @@ class MongoDBConnection:
         logging.info(f"File uploaded with ID: {file_id}")
         return ObjectId(file_id)
     
+    def create_document(self, file, metadata: Optional[Dict] = None) -> Optional[ObjectId]:
+        """
+        web post method
+        """
+        if metadata is None:
+            metadata = self.create_metadata()
+
+        file_id = self.fs.put(file, filename=file, metadata=metadata)
+        logging.info(f"File uploaded with ID: {file_id}")
+        return ObjectId(file_id)
+    
     def get_document(self, file_id: Optional[ObjectId] = None) -> Union[None, bytes]:
-        '''
+        """
         get the binary of the file
-        '''
+        """
         if not file_id:
             logging.error("You must provide either file_id")
             return None
@@ -89,11 +101,11 @@ class MongoDBConnection:
 
     def export_document(self, file_id: Optional[ObjectId] = None, 
             save_to: Optional[Path] = None) -> None:
-        '''
+        """
         file_id
         save_to
             dir to save data to, filename will be what the original file was
-        '''
+        """
         if not file_id:
             logging.error("You must provide either file_id")
             return None
@@ -135,81 +147,84 @@ class MongoDBConnection:
         for id in file_ids:
             self.export_document(id, save_to)
 
-    def delete_document(self, file_id: ObjectId):
-        self.fs.delete(file_id=file_id)
-
-    def create_metadata(self, path: Optional[Path], tags: Optional[List[str]] = ["unsorted"], 
-        date_of_service: Optional[str] = None, doctor: Optional[str] = None) -> Dict:
+    def delete_document(self, file_id: ObjectId) -> bool:
+        if self.fs.exists(file_id):
+            self.fs.delete(file_id)
+            return True
+        return False
         
-        '''
-        path:
-            pathlib path, to get file creation date
+    def create_metadata(
+            self, tags: Optional[List[str]] = ["unsorted"], date_of_service: Optional[str] = None, 
+            doctor: Optional[str] = None, **kwargs
+        ) -> Dict:
+        """
         date_of_service: 
             defaults to current time 
             optional, user input date, datetime will parse
         tag options:
-            bill, reciept, payment, lab_results, avs (after visit summary)
-            rx, email
+            bill, reciept, payment, lab_results, avs (after visit summary), rx, email
         doctor: 
             optional, name of the doctor
-        '''
-        try:
-            created_time = datetime.datetime.fromtimestamp(path.stat().st_ctime)
-        except:
-            created_time = None
+        """
 
         if date_of_service:
             date_of_service = datetime.strptime(date_of_service, "%Y-%m-%d")
         else:
             date_of_service = None
-
         metadata = {
-            "file_creation_time": created_time,
             "date_of_service": date_of_service,
             "upload_time": datetime.now(timezone.utc),
             "tags": tags,
             "doctor": doctor,
+            **kwargs
         }
+        print(f"created dict: {metadata}")
         return metadata
 
-    def update_metadata(self, file_id: Optional[ObjectId], date_of_service: Optional[str] = None, 
-        doctor: Optional[str] = None, tags: Optional[List[str]] = None, **kwargs) -> None:
-        '''
+    def update_metadata(self, file_id: Optional[ObjectId], metadata: Optional[Dict]) -> bool:
+        """
         update the exisiting metadata structure, can add/mod additional tags
-        returns None when failed
-        '''
+        returns false when failed
+        """
         new_metadata = {}
+
+        date_of_service = metadata.get("date_of_service")
+        doctor = metadata.get("doctor")
+        tags = metadata.get("tags") # will remove all old tags
+
         if date_of_service:
-            new_metadata["metadata.date_of_service"] = date_of_service
+            new_metadata["date_of_service"] = date_of_service
         if doctor:
-            new_metadata["metadata.doctor"] = doctor
+            new_metadata["doctor"] = doctor
         if tags:
-            new_metadata["metadata.tags"] = tags
+            new_metadata["tags"] = tags
 
-        for key, value in kwargs.items():
-            new_metadata[f"metadata.{key}"] = value
-
+        print("NEW METADATA: " + str(new_metadata))
         try:
             self.db.fs.files.update_one(
                 filter={"_id": file_id},
-                update={"$set": new_metadata}
+                update={"$set": {f"metadata.{k}": v for k, v in new_metadata.items()}}
             )
+            return True
         
         except Exception as e:
             logging.error("Failed to update metadata")
-            return None
+            return False
 
     def get_metadata(self, file_id: Optional[ObjectId])-> Dict:
-        '''
+        """
         returns dict, metadata tag of an object
-        '''
-        file_data = self.fs.get(file_id)
-        return file_data.metadata
+        """
+        try:
+            file_data = self.fs.get(file_id)
+            return file_data.metadata
+        except:
+            return None
 
     def list_file_ids(self, print_ids: Optional[bool] = False) -> List[ObjectId]:
-        '''
+        """
         retuns, list of ObjectIds, of all objs in the db
-        '''
+        """
         if self.db is None:
             raise Exception("Not connected to MongoDB. Call connect() first.")
 
@@ -229,6 +244,7 @@ if __name__ == "__main__":
     mongo = MongoDBConnection(db_name="testdb")
     mongo.connect()
     users = mongo.get_collection("users")
+
     # test_path = Path(r"D:\repos\vitals\data\import\n_pain.md")
     # file_id = mongo.create_document(test_path)
     # print(file_id)
